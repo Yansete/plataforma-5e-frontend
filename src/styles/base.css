@@ -1546,6 +1546,20 @@ textarea {
   color: var(--color-muted);
 }
 
+/* HU-019: error conceptual del distractor y motivo del descarte automático. */
+.option__note {
+  margin-top: var(--space-1);
+  font-size: var(--text-ui-size);
+  color: var(--color-muted);
+}
+
+.option__note--reliability {
+  padding: var(--space-1) var(--space-2);
+  border-left: 3px solid var(--color-warn);
+  background: var(--color-warn-soft);
+  color: var(--color-ink);
+}
+
 .option__actions {
   display: flex;
   flex-wrap: wrap;

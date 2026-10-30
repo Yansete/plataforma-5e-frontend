@@ -128,6 +128,10 @@ export interface ItemOption {
   decision: DistractorDecision;
   discardReason: DiscardReason | null;
   edited: boolean;
+  /** Solo distractores: el error conceptual que representa (HU-019). */
+  misconception?: string | null;
+  /** Por qué la plataforma lo descartó al generarlo: el material lo muestra como correcto (HU-019). */
+  reliabilityWarning?: string | null;
 }
 
 export type ReviewStatus = 'pendiente' | 'aprobado' | 'descartado';
