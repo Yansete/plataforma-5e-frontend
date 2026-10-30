@@ -9,6 +9,7 @@ import { structureSpec } from '@/features/review/model/structureFields';
 import { Icon } from '@/shared/components/Icon';
 import { errorMessage } from '@/shared/api/httpClient';
 import { DISCARD_REASONS, FORMAT_LABELS, discardReasonLabel, formatOf, typeInfo } from '@/features/generation/model/resourceCatalog';
+import { distractorNotes } from '@/features/review/model/distractorNotes';
 import { deleteResource, regenerate, saveResource } from '@/features/review/api/reviewApi';
 import { byStage, citedEvidence, countByStatus, decideOption, editContent, editOption, editProblem, editStructure, optionProblem, optionSource, setStatus, withStatus, highlight } from '@/features/review/model/reviewRules';
 import type { DiscardReason, Evidence, ItemOption, Resource, ReviewStatus, Stage5E, Unit } from '@/shared/types/domain';
@@ -450,6 +451,11 @@ function OptionRow({ option: o, letter, editable, source, onShowSource, onAccept
               {o.edited && <span className="tag">Editada</span>}
             </div>
             {o.feedback && <p className="option__feedback">{o.feedback}</p>}
+            {distractorNotes(o).map((note) => (
+              <p key={note.kind} className={`option__note option__note--${note.kind}`}>
+                <strong>{note.label}:</strong> {note.text}
+              </p>
+            ))}
             {source && (
               <button type="button" className="link-button" onClick={() => onShowSource(source.id)}>
                 Ver origen{source.location ? ` (${source.location})` : ''}
