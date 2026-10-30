@@ -1,24 +1,74 @@
-# Frontend · SPA de Platform 5E
+# Frontend de Plataforma 5E
 
-React 18, TypeScript y Vite. Se despliega en Vercel (Root Directory: `frontend`). Habla con el backend solo por HTTP: en local, Vite reenvía `/api` a `http://127.0.0.1:8000`; en Vercel, `VITE_API_URL` apunta al backend en Render.
+Aplicación React, TypeScript y Vite. Se comunica con el backend mediante HTTP.
 
-## Requisitos
+## Repositorios
 
-Node.js 22 LTS (mínimo 18).
+- Frontend: https://github.com/Yansete/plataforma-5e-frontend
+- Backend y documentación general: https://github.com/Yansete/plataforma-5e-backend
 
-## Comandos
+El frontend se extrajo de la carpeta frontend del repositorio original mediante git subtree split, conservando su historial.
 
-| Comando | Qué hace |
-| --- | --- |
-| `npm ci` | Instala las dependencias exactas de `package-lock.json` |
-| `npm run dev` | Servidor de desarrollo en http://localhost:5173 |
-| `npm run typecheck` | Comprueba los tipos de TypeScript |
-| `npm test` | Pruebas unitarias (Vitest) |
-| `npm run test:cobertura` | Pruebas con cobertura (umbral 80 %) |
-| `npm run build` | Versión de producción en `dist/` |
-| `npm run preview` | Sirve `dist/` en http://localhost:4173 |
-| `npm run test:e2e` | Recorrido en Chromium con el backend real (requiere `pip install -e ../backend`) |
+## Desarrollo local
 
-## Variables de entorno
+Requisito: Node.js 22.
 
-Ver [`.env.example`](.env.example).
+```bash
+npm ci
+npm run dev
+```
+
+La aplicación abre en http://localhost:5173.
+
+Con VITE_API_URL vacío, Vite reenvía /api al backend local en http://127.0.0.1:8000.
+BACKEND_URL permite cambiar el destino del proxy.
+Consulta .env.example para la configuración del cliente.
+
+## Verificación
+
+```bash
+npm run typecheck
+npm test
+npm run test:coverage
+npm run build
+```
+
+La cobertura exige 80 % en líneas, sentencias y funciones, y 70 % en ramas de los archivos configurados.
+
+## Pruebas E2E
+
+Playwright inicia el backend con una base SQLite temporal y el frontend de prueba.
+Usa el generador por reglas y desactiva la búsqueda externa.
+
+Se necesita Python con las dependencias del backend instaladas.
+Por defecto busca el backend en ../plataforma-5e-backend/backend.
+BACKEND_DIR permite indicar otra carpeta y PYTHON permite seleccionar el intérprete.
+
+Ejemplo en PowerShell, con ambos repositorios como carpetas vecinas:
+
+```powershell
+$env:PYTHON = (Resolve-Path "../plataforma-5e-backend/backend/.venv/Scripts/python.exe").Path
+npx playwright install chromium
+npm run test:e2e
+```
+
+## Integración continua
+
+GitHub Actions ejecuta tipos, pruebas con cobertura, compilación y E2E.
+Para E2E descarga main del repositorio del backend y registra el commit utilizado.
+Los reportes quedan disponibles como artefactos de la ejecución.
+
+## Vercel
+
+- Repositorio: Yansete/plataforma-5e-frontend.
+- Rama de producción: main.
+- Root Directory: raíz del repositorio, sin frontend/.
+- Framework: Vite.
+- Instalación: npm ci.
+- Compilación: npm run build.
+- Directorio de salida: dist.
+- VITE_API_URL: https://plataforma5e-api.onrender.com, sin barra final.
+
+vercel.json conserva las rutas de la SPA.
+La conexión de Vercel la realiza Juan, quien tiene acceso al proyecto.
+La migración se considera completada después de comprobar el despliegue publicado.
