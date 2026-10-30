@@ -30,7 +30,7 @@ export default defineConfig({
   webServer: [
     {
       command: `${process.env.PYTHON ?? 'python'} -m uvicorn platform5e.main:app --port ${BACK}`,
-      cwd: process.env.BACKEND_DIR ?? '../plataforma-5e-taller-integrador/backend',
+      cwd: process.env.BACKEND_DIR ?? '../plataforma-5e-backend/backend',
       url: `http://127.0.0.1:${BACK}/health`,
       env: { DATABASE_URL: `sqlite:///${DB}`, LLM_PROVIDER: 'rules', TOPIC_SEARCH_ENABLED: 'false', DEMO_CATALOG: 'false' },
       reuseExistingServer: false,

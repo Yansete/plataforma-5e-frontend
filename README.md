@@ -1,11 +1,11 @@
-﻿# Frontend de Plataforma 5E
+# Frontend de Plataforma 5E
 
 Aplicación React, TypeScript y Vite. Se comunica con el backend mediante HTTP.
 
 ## Repositorios
 
 - Frontend: https://github.com/Yansete/plataforma-5e-frontend
-- Backend y documentación general: https://github.com/Yansete/plataforma-5e-taller-integrador
+- Backend y documentación general: https://github.com/Yansete/plataforma-5e-backend
 
 El frontend se extrajo de la carpeta frontend del repositorio original mediante git subtree split, conservando su historial.
 
@@ -41,13 +41,13 @@ Playwright inicia el backend con una base SQLite temporal y el frontend de prueb
 Usa el generador por reglas y desactiva la búsqueda externa.
 
 Se necesita Python con las dependencias del backend instaladas.
-Por defecto busca el backend en ../plataforma-5e-taller-integrador/backend.
+Por defecto busca el backend en ../plataforma-5e-backend/backend.
 BACKEND_DIR permite indicar otra carpeta y PYTHON permite seleccionar el intérprete.
 
 Ejemplo en PowerShell, con ambos repositorios como carpetas vecinas:
 
 ```powershell
-$env:PYTHON = (Resolve-Path "../plataforma-5e-taller-integrador/backend/.venv/Scripts/python.exe").Path
+$env:PYTHON = (Resolve-Path "../plataforma-5e-backend/backend/.venv/Scripts/python.exe").Path
 npx playwright install chromium
 npm run test:e2e
 ```
