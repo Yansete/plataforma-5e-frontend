@@ -45,13 +45,32 @@ test('varios recursos por etapa: gráfico, audio y actividad, editados y exporta
   await page.getByRole('button', { name: 'Generar 3 recursos' }).click();
   await expect(page.getByText('Listo: 3 recursos para revisar')).toBeVisible({ timeout: 60_000 });
 
-  // Revisión unificada en el orden de la clase.
+  // HU-040: los cinco momentos aparecen en orden, incluidos los vacíos.
   await page.getByRole('link', { name: 'Ir a Revisión' }).click();
   const headings = page.locator('.stage-group__title');
-  await expect(headings).toHaveCount(3);
-  await expect(headings.nth(0)).toContainText('Para iniciar la clase');
-  await expect(headings.nth(1)).toContainText('Para explicar');
-  await expect(headings.nth(2)).toContainText('Para evaluar');
+  await expect(headings).toHaveText([
+    /Para iniciar la clase\s*\(1\)/,
+    /Para explorar\s*\(0\)/,
+    /Para explicar\s*\(1\)/,
+    /Para aplicar\s*\(0\)/,
+    /Para evaluar\s*\(1\)/,
+  ]);
+
+  await expect(
+    page.getByRole('region', { name: 'Para explorar (0)', exact: true })
+      .getByText('Sin recursos todavía', { exact: true }),
+  ).toBeVisible();
+
+  await expect(
+    page.getByRole('region', { name: 'Para aplicar (0)', exact: true })
+      .getByText('Sin recursos todavía', { exact: true }),
+  ).toBeVisible();
+
+  const coverage = page.getByRole('status').filter({ hasText: 'Cobertura:' });
+  await expect(coverage).toContainText('Cobertura: 3 de 5 momentos');
+  await expect(coverage).toContainText('faltan Para explorar, Para aplicar');
+  await expect(coverage).toContainText('Según los recursos del filtro «Por revisar».');
+
   await expect(page.getByRole('img', { name: /Mapa conceptual/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Escuchar con la voz del navegador' })).toBeVisible();
   const quiz = page.locator('.review').filter({ hasText: 'Verdadero o falso:' });

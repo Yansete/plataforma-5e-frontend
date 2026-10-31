@@ -11,8 +11,9 @@ import { errorMessage } from '@/shared/api/httpClient';
 import { DISCARD_REASONS, FORMAT_LABELS, discardReasonLabel, formatOf, typeInfo } from '@/features/generation/model/resourceCatalog';
 import { distractorNotes } from '@/features/review/model/distractorNotes';
 import { deleteResource, regenerate, saveResource } from '@/features/review/api/reviewApi';
-import { byStage, citedEvidence, countByStatus, decideOption, editContent, editOption, editProblem, editStructure, optionProblem, optionSource, setStatus, withStatus, highlight } from '@/features/review/model/reviewRules';
+import { stageCoverage, citedEvidence, countByStatus, decideOption, editContent, editOption, editProblem, editStructure, optionProblem, optionSource, setStatus, withStatus, highlight } from '@/features/review/model/reviewRules';
 import type { DiscardReason, Evidence, ItemOption, Resource, ReviewStatus, Stage5E, Unit } from '@/shared/types/domain';
+import type { UnitTabProps } from '@/features/units/model/unitTab';
 
 const RichTextEditor = lazy(() => import('@/features/review/components/RichTextEditor'));
 
@@ -24,7 +25,6 @@ const STAGE_TITLES: Record<Stage5E, string> = {
   elaborate: 'Para aplicar',
   evaluate: 'Para evaluar',
 };
-import type { UnitTabProps } from '@/features/units/model/unitTab';
 
 const FILTERS: { status: ReviewStatus; label: string }[] = [
   { status: 'pendiente', label: 'Por revisar' },
@@ -55,6 +55,8 @@ export function ReviewTab({ unit, base, resources, resourcesError, reloadResourc
 
   const counts = countByStatus(resources);
   const shown = withStatus(resources, filter);
+  const { groups, missingStages, coveredCount, totalCount } = stageCoverage(shown);
+  const filterLabel = FILTERS.find((item) => item.status === filter)?.label;
 
   return (
     <div className="stack stack--loose">
@@ -65,12 +67,23 @@ export function ReviewTab({ unit, base, resources, resourcesError, reloadResourc
           </button>
         ))}
       </div>
+      <div className="stack stack--tight" role="status">
+        <p>
+          <strong>Cobertura: {coveredCount} de {totalCount} momentos</strong>
+          {missingStages.length > 0
+            ? ` · ${missingStages.length === 1 ? 'falta' : 'faltan'} ${missingStages
+                .map((stage) => STAGE_TITLES[stage])
+                .join(', ')}`
+            : ' · Todos los momentos tienen recursos'}
+        </p>
+        <p className="caption">Según los recursos del filtro «{filterLabel}».</p>
+      </div>
       {notice && (
         <Alert tone="success" role="status">
           {notice}
         </Alert>
       )}
-      {shown.length === 0 ? (
+      {shown.length === 0 && (
         <EmptyState
           icon="review"
           title={filter === 'pendiente' ? 'No hay recursos por revisar' : filter === 'aprobado' ? 'Todavía no apruebas recursos' : 'No hay recursos descartados'}
@@ -90,32 +103,34 @@ export function ReviewTab({ unit, base, resources, resourcesError, reloadResourc
               ? 'Aprueba un recurso en «Por revisar» para poder descargarlo.'
               : 'Aquí quedan los recursos que descartes, con su motivo.'}
         </EmptyState>
-      ) : (
-        byStage(shown).map((group) => (
-          <section key={group.stage} className="stage-group stack stack--loose" aria-labelledby={`etapa-${group.stage}`}>
-            <h2 className="stage-group__title" id={`etapa-${group.stage}`}>
-              {STAGE_TITLES[group.stage]} <span className="caption">({group.resources.length})</span>
-            </h2>
-            {group.resources.map((r) => (
-              <ResourceReview
-                key={r.id}
-                resource={r}
-                unit={unit}
-                onSaved={(saved) => upsertResources([saved])}
-                onRemoved={removeResource}
-                onRegenerated={(created, replaced) => {
-                  upsertResources([...created, replaced]);
-                  setNotice(
-                    created.length
-                      ? 'Se generó una versión nueva y quedó al inicio de «Por revisar». La anterior pasó a «Descartados».'
-                      : 'No se pudo redactar una versión nueva con el material disponible.',
-                  );
-                }}
-              />
-            ))}
-          </section>
-        ))
       )}
+      {groups.map((group) => (
+        <section key={group.stage} className="stage-group stack stack--loose" aria-labelledby={`etapa-${group.stage}`}>
+          <h2 className="stage-group__title" id={`etapa-${group.stage}`}>
+            {STAGE_TITLES[group.stage]} <span className="caption">({group.resources.length})</span>
+          </h2>
+          {group.resources.length === 0 && (
+            <p className="caption">Sin recursos todavía</p>
+          )}
+          {group.resources.map((r) => (
+            <ResourceReview
+              key={r.id}
+              resource={r}
+              unit={unit}
+              onSaved={(saved) => upsertResources([saved])}
+              onRemoved={removeResource}
+              onRegenerated={(created, replaced) => {
+                upsertResources([...created, replaced]);
+                setNotice(
+                  created.length
+                    ? 'Se generó una versión nueva y quedó al inicio de «Por revisar». La anterior pasó a «Descartados».'
+                    : 'No se pudo redactar una versión nueva con el material disponible.',
+                );
+              }}
+            />
+          ))}
+        </section>
+      ))}
     </div>
   );
 }
