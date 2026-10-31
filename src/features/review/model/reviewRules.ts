@@ -51,6 +51,23 @@ export function byStage(resources: Resource[]): { stage: Stage5E; resources: Res
   return STAGE_ORDER.map((stage) => ({ stage, resources: resources.filter((r) => r.stage === stage) })).filter((g) => g.resources.length > 0);
 }
 
+/** Cobertura de los recursos recibidos; el componente aplica antes el filtro de estado. */
+export function stageCoverage(resources: Resource[]): {
+  groups: { stage: Stage5E; resources: Resource[] }[];
+  missingStages: Stage5E[];
+  coveredCount: number;
+  totalCount: number;
+} {
+  const groups = STAGE_ORDER.map((stage) => ({ stage, resources: resources.filter((r) => r.stage === stage) }));
+  const missingStages = groups.filter((group) => group.resources.length === 0).map((group) => group.stage);
+  return {
+    groups,
+    missingStages,
+    coveredCount: STAGE_ORDER.length - missingStages.length,
+    totalCount: STAGE_ORDER.length,
+  };
+}
+
 export function setStatus(resource: Resource, status: ReviewStatus, reason: DiscardReason | null = null): Resource {
   return { ...resource, status, discardReason: status === 'descartado' ? reason ?? 'otro' : null };
 }

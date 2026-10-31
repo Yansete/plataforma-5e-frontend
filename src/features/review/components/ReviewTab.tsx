@@ -11,11 +11,12 @@ import { errorMessage } from '@/shared/api/httpClient';
 import { DISCARD_REASONS, FORMAT_LABELS, discardReasonLabel, formatOf, typeInfo } from '@/features/generation/model/resourceCatalog';
 import { distractorNotes } from '@/features/review/model/distractorNotes';
 import { deleteResource, regenerate, saveResource } from '@/features/review/api/reviewApi';
-import { byStage, citedEvidence, countByStatus, decideOption, editContent, editOption, editProblem, editStructure, optionProblem, optionSource, setStatus, withStatus, highlight } from '@/features/review/model/reviewRules';
+import { stageCoverage, citedEvidence, countByStatus, decideOption, editContent, editOption, editProblem, editStructure, optionProblem, optionSource, setStatus, withStatus, highlight } from '@/features/review/model/reviewRules';
 import type { DiscardReason, Evidence, ItemOption, Resource, ReviewStatus, Stage5E, Unit } from '@/shared/types/domain';
 import type { UnitTabProps } from '@/features/units/model/unitTab';
 
 const RichTextEditor = lazy(() => import('@/features/review/components/RichTextEditor'));
+
 /** Revisión unificada: los recursos se agrupan en el orden de la clase. */
 const STAGE_TITLES: Record<Stage5E, string> = {
   engage: 'Para iniciar la clase',
@@ -24,16 +25,19 @@ const STAGE_TITLES: Record<Stage5E, string> = {
   elaborate: 'Para aplicar',
   evaluate: 'Para evaluar',
 };
-const STAGES: Stage5E[] = ['engage', 'explore', 'explain', 'elaborate', 'evaluate'];
+
 const FILTERS: { status: ReviewStatus; label: string }[] = [
   { status: 'pendiente', label: 'Por revisar' },
   { status: 'aprobado', label: 'Aprobados' },
   { status: 'descartado', label: 'Descartados' },
 ];
+
 const LETTERS = 'ABCDEFGHIJ';
+
 export function ReviewTab({ unit, base, resources, resourcesError, reloadResources, upsertResources, removeResource }: UnitTabProps) {
   const [filter, setFilter] = useState<ReviewStatus>('pendiente');
   const [notice, setNotice] = useState('');
+
   if (resourcesError)
     return (
       <div className="stack">
@@ -48,16 +52,12 @@ export function ReviewTab({ unit, base, resources, resourcesError, reloadResourc
       </div>
     );
   if (!resources) return <Spinner label="Cargando recursos…" />;
+
   const counts = countByStatus(resources);
   const shown = withStatus(resources, filter);
-  const existingGroups = byStage(shown);
-  const groups = STAGES.map((stage) => ({
-    stage,
-    resources: existingGroups.find((group) => group.stage === stage)?.resources ?? [],
-  }));
-  const missingStages = groups.filter((group) => group.resources.length === 0);
-  const coveredCount = STAGES.length - missingStages.length;
+  const { groups, missingStages, coveredCount, totalCount } = stageCoverage(shown);
   const filterLabel = FILTERS.find((item) => item.status === filter)?.label;
+
   return (
     <div className="stack stack--loose">
       <div className="filters" role="group" aria-label="Mostrar">
@@ -69,10 +69,10 @@ export function ReviewTab({ unit, base, resources, resourcesError, reloadResourc
       </div>
       <div className="stack stack--tight" role="status">
         <p>
-          <strong>Cobertura: {coveredCount} de {STAGES.length} momentos</strong>
+          <strong>Cobertura: {coveredCount} de {totalCount} momentos</strong>
           {missingStages.length > 0
             ? ` · ${missingStages.length === 1 ? 'falta' : 'faltan'} ${missingStages
-                .map((group) => STAGE_TITLES[group.stage])
+                .map((stage) => STAGE_TITLES[stage])
                 .join(', ')}`
             : ' · Todos los momentos tienen recursos'}
         </p>
@@ -154,10 +154,12 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
   const [reason, setReason] = useState<DiscardReason>('sin_sentido');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [focusEvidence, setFocusEvidence] = useState('');
+
   useEffect(() => {
     setTitle(resource.title);
     setHtml(resource.bodyHtml || textToHtml(resource.body));
   }, [resource.title, resource.body, resource.bodyHtml]);
+
   const save = async (next: Resource): Promise<boolean> => {
     setBusy('guardando');
     setError('');
@@ -171,6 +173,7 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
       setBusy('');
     }
   };
+
   const doRegenerate = async () => {
     setBusy('regenerando');
     setError('');
@@ -183,6 +186,7 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
       setBusy('');
     }
   };
+
   const doDelete = async () => {
     setBusy('borrando');
     try {
@@ -195,16 +199,19 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
       setBusy('');
     }
   };
+
   const showSource = (evidenceId: string) => {
     setFocusEvidence(evidenceId);
     document.getElementById(`ev-${resource.id}-${evidenceId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
+
   const pending = resource.status === 'pendiente';
   const blockers = resource.approvalBlockers;
   const outcome = unit.outcomes.find((o) => o.id === resource.outcomeId);
   const disabled = busy !== '';
   const format = resource.format ?? formatOf(resource.type);
   const spec = structureSpec(resource.type);
+
   return (
     <div className="review">
       <article className="card review__main" aria-labelledby={`titulo-${resource.id}`}>
@@ -217,6 +224,7 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
           {resource.status === 'aprobado' && <span className="tag tag--approved">Aprobado</span>}
           {resource.status === 'descartado' && <span className="tag tag--discarded">Descartado · {discardReasonLabel(resource.discardReason)}</span>}
         </div>
+
         {editingContent ? (
           <form
             className="stack"
@@ -274,6 +282,7 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
             )}
           </div>
         )}
+
         {editingStructure && spec ? (
           <StructureEditor
             resource={resource}
@@ -294,6 +303,7 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
             )}
           </>
         )}
+
         {resource.options && (
           <ol className="options">
             {resource.options.map((o, i) => (
@@ -312,11 +322,13 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
             ))}
           </ol>
         )}
+
         {error && (
           <Alert tone="warn" role="alert">
             {error}
           </Alert>
         )}
+
         {pending && (
           <div className="review__actions">
             {blockers.length > 0 && (
@@ -369,7 +381,9 @@ function ResourceReview({ resource, unit, onSaved, onRemoved, onRegenerated }: R
           </div>
         )}
       </article>
+
       <EvidencePanel resource={resource} focused={focusEvidence} />
+
       <ConfirmDialog
         open={confirmDelete}
         title="¿Borrar este recurso?"
@@ -404,9 +418,11 @@ function OptionRow({ option: o, letter, editable, source, onShowSource, onAccept
   const [text, setText] = useState(o.text);
   const [feedback, setFeedback] = useState(o.feedback);
   const [problem, setProblem] = useState('');
+
   const state = o.isCorrect ? 'Respuesta correcta' : o.decision === 'aceptado' ? 'Aceptado' : o.decision === 'descartado' ? `Descartado · ${discardReasonLabel(o.discardReason)}` : 'Sin decidir';
   const tone = o.isCorrect || o.decision === 'aceptado' ? 'tag tag--approved' : o.decision === 'descartado' ? 'tag tag--discarded' : 'tag tag--review';
   const cls = ['option', o.isCorrect && 'option--key', o.decision === 'descartado' && 'option--discarded'].filter(Boolean).join(' ');
+
   return (
     <li className={cls}>
       <span className="option__letter" aria-hidden="true">
