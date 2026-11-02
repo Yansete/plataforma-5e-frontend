@@ -4,6 +4,7 @@ import { Button, Spinner } from '@/shared/components/ui';
 import { errorMessage } from '@/shared/api/httpClient';
 import { fetchResourceMedia, regenerateMedia } from '@/features/review/api/reviewApi';
 import { formatOf } from '@/features/generation/model/resourceCatalog';
+import { stepSources } from '@/features/review/model/stepSources';
 import type { Resource } from '@/shared/types/domain';
 
 function useMediaUrl(resource: Resource, enabled: boolean) {
@@ -144,6 +145,25 @@ function AudioView({ resource, editable, onChanged }: MediaProps) {
 
 function ActivityPreview({ resource }: { resource: Resource }) {
   const s = resource.structure ?? {};
+  if (resource.type === 'exploracion_guiada') {
+    const sources = stepSources(resource);
+    return (
+      <div className="stack stack--tight">
+        <span className="overline">Pasos de la exploración (el estudiante responde cada pregunta guía)</span>
+        <ol className="activity-list">
+          {(s.guidedSteps ?? []).map((step, i) => (
+            <li key={i}>
+              <strong>{step.title}.</strong> {step.instruction}
+              <p className="option__feedback">
+                <em>{step.question}</em>
+              </p>
+              <p className="caption">{sources[i] ? `Fuente: ${sources[i]}` : 'Sin fuente del material: revisa este paso.'}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    );
+  }
   if (resource.type === 'emparejamiento')
     return (
       <table className="activity-table">

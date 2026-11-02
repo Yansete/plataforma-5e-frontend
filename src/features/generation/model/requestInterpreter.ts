@@ -39,6 +39,7 @@ const EXPLICIT: [RegExp, ResourceType][] = [
   [/sondeo|ideas previas|saberes previos|conocimientos previos|diagnostic/, 'sondeo_diagnostico'],
   [/glosario|vocabulario|terminos clave/, 'glosario'],
   [/\b(un|una|el|los|unos|estudio de)\s+casos?\b|\bcasos? con\b|indagacion/, 'caso_indagacion'],
+  [/exploracion guiada|actividad (interactiva )?de exploracion/, 'exploracion_guiada'],
   [/guia de exploracion|guia para explorar/, 'guia_exploracion'],
 ];
 
