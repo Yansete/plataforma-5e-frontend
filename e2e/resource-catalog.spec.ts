@@ -24,6 +24,7 @@ test('carga el catálogo publicado y permite reintentar sin usar una lista local
   await expect(page.getByText(/quedó listo/)).toBeVisible();
 
   let calls = 0;
+  let published = 0;
   await page.route('**/api/v1/resource-types', async (route) => {
     if (++calls === 1) {
       await route.fulfill({ status: 503, json: { error: { code: 'CATALOG_UNAVAILABLE', message: 'Catálogo temporalmente no disponible.' } } });
@@ -31,6 +32,7 @@ test('carga el catálogo publicado y permite reintentar sin usar una lista local
     }
     const response = await route.fetch();
     const catalog = await response.json();
+    published = catalog.length;
     for (const entry of catalog) if (entry.id === 'glosario') {
       entry.name = 'Glosario publicado por el backend';
       entry.count = ['término de catálogo', 'términos de catálogo'];
@@ -41,7 +43,9 @@ test('carga el catálogo publicado y permite reintentar sin usar una lista local
   await expect(page.getByRole('alert')).toContainText('Catálogo temporalmente no disponible.');
   await expect(page.getByRole('checkbox', { name: 'Preguntas de opción múltiple' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
-  await expect(page.getByRole('checkbox')).toHaveCount(18);
+  // Tantas casillas como tipos publica el backend: la cantidad no está fija en el frontend.
+  await expect.poll(() => published).toBeGreaterThan(0);
+  await expect(page.getByRole('checkbox')).toHaveCount(published);
   await expect(page.getByLabel('Glosario publicado por el backend', { exact: true })).toBeVisible();
   await page.getByLabel('Preguntas de opción múltiple', { exact: true }).uncheck();
   await page.getByLabel('Glosario publicado por el backend', { exact: true }).check();
