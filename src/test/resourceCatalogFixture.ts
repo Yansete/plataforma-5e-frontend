@@ -7,6 +7,7 @@ export const resourceCatalogFixture = [
   {"id": "caso_indagacion", "name": "Caso con preguntas", "singular": "Caso con preguntas", "count": ["caso", "casos"], "stage": "explore", "group": "Para explorar", "format": "text", "hasOptions": false},
   {"id": "imagen_ilustrativa", "name": "Imagen ilustrativa", "singular": "Imagen ilustrativa", "count": ["imagen", "imágenes"], "stage": "explore", "group": "Para explorar", "format": "image", "hasOptions": false},
   {"id": "diagrama_proceso", "name": "Diagrama de proceso", "singular": "Diagrama de proceso", "count": ["diagrama", "diagramas"], "stage": "explore", "group": "Para explorar", "format": "visual", "hasOptions": false},
+  {"id": "exploracion_guiada", "name": "Exploración guiada", "singular": "Exploración guiada", "count": ["exploración guiada", "exploraciones guiadas"], "stage": "explore", "group": "Para explorar", "format": "interactive", "hasOptions": false},
   {"id": "explicacion", "name": "Explicación del tema", "singular": "Explicación del tema", "count": ["explicación", "explicaciones"], "stage": "explain", "group": "Para explicar", "format": "text", "hasOptions": false},
   {"id": "glosario", "name": "Glosario", "singular": "Glosario", "count": ["glosario", "glosarios"], "stage": "explain", "group": "Para explicar", "format": "text", "hasOptions": false},
   {"id": "mapa_conceptual", "name": "Mapa conceptual", "singular": "Mapa conceptual", "count": ["mapa conceptual", "mapas conceptuales"], "stage": "explain", "group": "Para explicar", "format": "visual", "hasOptions": false},

@@ -38,6 +38,16 @@ export const STRUCTURE_SPECS: Partial<Record<ResourceType, StructureSpec>> = {
     fields: [],
     list: { key: 'steps', label: 'Pasos del proceso', item: 'Paso', fields: [text('title', 'Título'), area('text', 'Explicación')], min: 3 },
   },
+  exploracion_guiada: {
+    fields: [],
+    list: {
+      key: 'guidedSteps',
+      label: 'Pasos de la exploración',
+      item: 'Paso',
+      fields: [text('title', 'Título del paso'), area('instruction', 'Consigna: qué lee, observa o compara'), area('question', 'Pregunta guía')],
+      min: 3,
+    },
+  },
   ordenar_pasos: {
     fields: [],
     list: { key: 'sequence', label: 'Pasos en el orden correcto', item: 'Paso', fields: 'string', min: 3 },

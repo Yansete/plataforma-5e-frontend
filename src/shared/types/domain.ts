@@ -71,6 +71,7 @@ export type ResourceType =
   | 'audio_detonante'
   | 'imagen_ilustrativa'
   | 'diagrama_proceso'
+  | 'exploracion_guiada'
   | 'mapa_conceptual'
   | 'infografia'
   | 'podcast_resumen'
@@ -89,6 +90,8 @@ export interface ResourceStructure {
   headline?: string;
   points?: { title: string; text: string }[];
   steps?: { title: string; text: string }[];
+  /** Exploración guiada (HU-048): cada paso con su consigna, su pregunta guía y los fragmentos que lo respaldan. */
+  guidedSteps?: { title: string; instruction: string; question: string; fragmentIds?: string[] }[];
   sequence?: string[];
   pairs?: { term: string; definition: string }[];
   statements?: { text: string; isTrue: boolean; feedback: string }[];
