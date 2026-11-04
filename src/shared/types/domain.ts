@@ -67,6 +67,7 @@ export type ResourceType =
   | 'explicacion'
   | 'glosario'
   | 'ejercicio_aplicacion'
+  | 'caso_aplicado'
   | 'item_opcion_multiple'
   | 'audio_detonante'
   | 'reto_prediccion'
@@ -102,6 +103,10 @@ export interface ResourceStructure {
     reveal: string;
     fragmentIds?: string[];
   }[];
+  /** Caso aplicado (HU-050): situación nueva, consigna y criterios de logro con los fragmentos que los respaldan. */
+  scenario?: string;
+  task?: string;
+  criteria?: { criterion: string; fragmentIds?: string[] }[];
   sequence?: string[];
   pairs?: { term: string; definition: string }[];
   statements?: { text: string; isTrue: boolean; feedback: string }[];

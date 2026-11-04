@@ -1,7 +1,7 @@
 /**
- * De qué parte del material sale cada elemento de una actividad: cada paso de la exploración guiada (HU-048) y cada
- * predicción del reto (HU-047) guardan los fragmentos que los respaldan (`fragmentIds`), y la evidencia del recurso
- * trae su documento y su página.
+ * De qué parte del material sale cada elemento de una actividad: cada paso de la exploración guiada (HU-048), cada
+ * predicción del reto (HU-047) y cada criterio del caso aplicado (HU-050) guardan los fragmentos que los respaldan
+ * (`fragmentIds`), y la evidencia del recurso trae su documento y su página.
  */
 import type { Evidence, Resource } from '@/shared/types/domain';
 
@@ -19,3 +19,4 @@ export function itemSources(resource: Resource, items: { fragmentIds?: string[] 
 
 export const stepSources = (resource: Resource) => itemSources(resource, resource.structure?.guidedSteps ?? []);
 export const predictionSources = (resource: Resource) => itemSources(resource, resource.structure?.predictions ?? []);
+export const criterionSources = (resource: Resource) => itemSources(resource, resource.structure?.criteria ?? []);

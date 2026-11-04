@@ -34,7 +34,7 @@ describe('catálogo publicado por el backend', () => {
     await expect(loadResourceCatalog()).rejects.toMatchObject({ code: 'NO_CONNECTION' });
     await loadResourceCatalog();
     expect(calls).toHaveLength(2);
-    expect(RESOURCE_TYPES).toHaveLength(20);
+    expect(RESOURCE_TYPES).toHaveLength(21);
   });
 
   it.each([
@@ -47,7 +47,7 @@ describe('catálogo publicado por el backend', () => {
     mockFetch({ body: response });
     await expect(loadResourceCatalog()).rejects.toMatchObject({ code: 'INVALID_RESOURCE_CATALOG' });
     expect(typeInfo('glosario').name).toBe('Glosario');
-    expect(RESOURCE_TYPES).toHaveLength(20);
+    expect(RESOURCE_TYPES).toHaveLength(21);
   });
 
   it('copia los datos recibidos en lugar de retener arrays externos', () => {

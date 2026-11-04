@@ -1,12 +1,12 @@
 /**
- * HU-048 y HU-047: la exploración guiada y el reto de predicción se revisan y se editan elemento por elemento, y cada
- * paso o predicción muestra de dónde sale.
+ * HU-048, HU-047 y HU-050: la exploración guiada, el reto de predicción y el caso aplicado se revisan y se editan
+ * elemento por elemento, y cada paso, predicción o criterio muestra de dónde sale.
  */
 import { describe, expect, it } from 'vitest';
 import { formatOf, typeInfo } from '@/features/generation/model/resourceCatalog';
 import { detectType } from '@/features/generation/model/requestInterpreter';
 import { addItem, listItems, setItem, structureProblem, structureSpec } from '@/features/review/model/structureFields';
-import { predictionSources, stepSources } from '@/features/review/model/itemSources';
+import { criterionSources, predictionSources, stepSources } from '@/features/review/model/itemSources';
 import { text } from '@/test/fixtures';
 import type { ResourceStructure } from '@/shared/types/domain';
 
@@ -96,5 +96,53 @@ describe('reto de predicción (HU-047)', () => {
     expect(structureProblem('reto_prediccion', repeated)).toContain('distintas');
     expect(structureProblem('reto_prediccion', addItem(predictions, spec))).toContain('Completa o quita');
     expect(structureProblem('reto_prediccion', { predictions: predictions.predictions?.slice(0, 2) })).toContain('al menos 3');
+  });
+});
+
+const criterion = (text: string, fragmentIds: string[] = ['f1']) => ({ criterion: text, fragmentIds });
+const appliedCase: ResourceStructure = {
+  scenario: 'Un colegio transmitirá en vivo su graduación y enviará las notas a cada familia por la misma red.',
+  task: 'Propón qué protocolo usar para cada servicio y justifica tu decisión.',
+  criteria: [
+    criterion('Justifica el uso de TCP para enviar las notas.', ['f1']),
+    criterion('Explica por qué UDP conviene para la transmisión en vivo.', ['f2']),
+    criterion('Compara la entrega confiable de TCP con la rapidez de UDP.', ['f1', 'f2']),
+  ],
+};
+const applied = (s: ResourceStructure = appliedCase) => text({ type: 'caso_aplicado', stage: 'elaborate', structure: s });
+
+describe('caso aplicado (HU-050)', () => {
+  it('es una actividad interactiva para aplicar y se reconoce al escribir el pedido', () => {
+    expect(formatOf('caso_aplicado')).toBe('interactive');
+    expect(typeInfo('caso_aplicado').stage).toBe('elaborate');
+    expect(detectType('Quiero un caso aplicado sobre TCP y UDP')).toBe('caso_aplicado');
+    expect(detectType('dos casos de aplicación para la unidad')).toBe('caso_aplicado');
+    expect(detectType('un caso con preguntas')).toBe('caso_indagacion');
+    expect(detectType('un ejercicio para practicar')).toBe('ejercicio_aplicacion');
+  });
+
+  it('cada criterio muestra el documento y la página de los fragmentos que cita', () => {
+    expect(criterionSources(applied())).toEqual([
+      'separata.pdf, p. 1',
+      'Protocolo de datagramas de usuario.txt, p. 2',
+      'separata.pdf, p. 1; Protocolo de datagramas de usuario.txt, p. 2',
+    ]);
+    expect(criterionSources(applied({ ...appliedCase, criteria: [criterion('Nuevo', [])] }))).toEqual(['']);
+  });
+
+  it('se edita la situación, la consigna y cada criterio, conserva las citas y exige tres criterios distintos', () => {
+    const spec = structureSpec('caso_aplicado')!;
+    expect(spec.fields.map((f) => f.key)).toEqual(['scenario', 'task']);
+    expect(spec.list?.key).toBe('criteria');
+    const edited = setItem(appliedCase, spec, 0, 'criterion', 'Justifica con el material por qué TCP asegura las notas.');
+    expect(edited.criteria?.[0]).toMatchObject({ criterion: 'Justifica con el material por qué TCP asegura las notas.', fragmentIds: ['f1'] });
+    expect(structureProblem('caso_aplicado', edited)).toBeNull();
+
+    expect(structureProblem('caso_aplicado', { ...appliedCase, task: ' ' })).toContain('Consigna');
+    expect(structureProblem('caso_aplicado', { ...appliedCase, scenario: '' })).toContain('Situación nueva');
+    const repeated = setItem(appliedCase, spec, 2, 'criterion', 'justifica el uso de TCP para enviar las notas.');
+    expect(structureProblem('caso_aplicado', repeated)).toContain('no se pueden repetir');
+    expect(structureProblem('caso_aplicado', addItem(appliedCase, spec))).toContain('Completa o quita');
+    expect(structureProblem('caso_aplicado', { ...appliedCase, criteria: appliedCase.criteria?.slice(0, 2) })).toContain('al menos 3');
   });
 });
