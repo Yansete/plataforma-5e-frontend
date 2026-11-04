@@ -1,9 +1,12 @@
-/** HU-048: la exploración guiada se revisa y se edita paso a paso, y cada paso muestra de dónde sale. */
+/**
+ * HU-048 y HU-047: la exploración guiada y el reto de predicción se revisan y se editan elemento por elemento, y cada
+ * paso o predicción muestra de dónde sale.
+ */
 import { describe, expect, it } from 'vitest';
 import { formatOf, typeInfo } from '@/features/generation/model/resourceCatalog';
 import { detectType } from '@/features/generation/model/requestInterpreter';
 import { addItem, listItems, setItem, structureProblem, structureSpec } from '@/features/review/model/structureFields';
-import { stepSources } from '@/features/review/model/stepSources';
+import { predictionSources, stepSources } from '@/features/review/model/itemSources';
 import { text } from '@/test/fixtures';
 import type { ResourceStructure } from '@/shared/types/domain';
 
@@ -48,5 +51,50 @@ describe('exploración guiada (HU-048)', () => {
     expect(listItems(withBlank, spec)).toHaveLength(4);
     expect(structureProblem('exploracion_guiada', withBlank)).toContain('Completa o quita');
     expect(structureProblem('exploracion_guiada', { guidedSteps: structure.guidedSteps?.slice(0, 2) })).toContain('al menos 3');
+  });
+});
+
+const prediction = (correctOption: string, otherOption: string, fragmentIds: string[] = ['f1'], extraOption = '') => ({
+  question: `¿Qué protocolo crees que es ${correctOption}?`,
+  correctOption,
+  otherOption,
+  extraOption,
+  reveal: `El material dice que ${correctOption} es así.`,
+  fragmentIds,
+});
+const predictions: ResourceStructure = {
+  predictions: [prediction('TCP', 'UDP', ['f1'], 'IP'), prediction('UDP', 'TCP', ['f2']), prediction('IP', 'DNS', ['f1', 'f2'])],
+};
+const challenge = (s: ResourceStructure = predictions) => text({ type: 'reto_prediccion', stage: 'engage', structure: s });
+
+describe('reto de predicción (HU-047)', () => {
+  it('es una actividad interactiva para iniciar la clase y se reconoce al escribir el pedido', () => {
+    expect(formatOf('reto_prediccion')).toBe('interactive');
+    expect(typeInfo('reto_prediccion').stage).toBe('engage');
+    expect(detectType('Quiero un reto de predicción sobre TCP')).toBe('reto_prediccion');
+    expect(detectType('un reto inicial para la clase')).toBe('reto_prediccion');
+    expect(detectType('una pregunta detonante')).toBe('pregunta_detonante');
+  });
+
+  it('cada predicción muestra el documento y la página de los fragmentos que cita', () => {
+    expect(predictionSources(challenge())).toEqual([
+      'separata.pdf, p. 1',
+      'Protocolo de datagramas de usuario.txt, p. 2',
+      'separata.pdf, p. 1; Protocolo de datagramas de usuario.txt, p. 2',
+    ]);
+    expect(predictionSources(challenge({ predictions: [prediction('TCP', 'UDP', [])] }))).toEqual(['']);
+  });
+
+  it('se edita predicción por predicción, conserva las citas y exige opciones distintas y al menos tres', () => {
+    const spec = structureSpec('reto_prediccion')!;
+    expect(spec.list?.key).toBe('predictions');
+    const edited = setItem(predictions, spec, 0, 'reveal', 'TCP confirma la entrega con acuses de recibo.');
+    expect(edited.predictions?.[0]).toMatchObject({ reveal: 'TCP confirma la entrega con acuses de recibo.', fragmentIds: ['f1'] });
+    expect(structureProblem('reto_prediccion', edited)).toBeNull();
+
+    const repeated = setItem(predictions, spec, 1, 'otherOption', 'udp');
+    expect(structureProblem('reto_prediccion', repeated)).toContain('distintas');
+    expect(structureProblem('reto_prediccion', addItem(predictions, spec))).toContain('Completa o quita');
+    expect(structureProblem('reto_prediccion', { predictions: predictions.predictions?.slice(0, 2) })).toContain('al menos 3');
   });
 });

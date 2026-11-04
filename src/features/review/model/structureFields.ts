@@ -48,6 +48,22 @@ export const STRUCTURE_SPECS: Partial<Record<ResourceType, StructureSpec>> = {
       min: 3,
     },
   },
+  reto_prediccion: {
+    fields: [],
+    list: {
+      key: 'predictions',
+      label: 'Predicciones del reto',
+      item: 'Predicción',
+      fields: [
+        area('question', 'Pregunta: ¿qué crees que…?'),
+        text('correctOption', 'Opción correcta (la que dice el material)'),
+        text('otherOption', 'Opción equivocada'),
+        { key: 'extraOption', label: 'Otra opción equivocada (opcional)', kind: 'text', optional: true },
+        area('reveal', 'Lo que dice el material'),
+      ],
+      min: 3,
+    },
+  },
   ordenar_pasos: {
     fields: [],
     list: { key: 'sequence', label: 'Pasos en el orden correcto', item: 'Paso', fields: 'string', min: 3 },
@@ -137,6 +153,13 @@ export function structureProblem(type: ResourceType, structure: ResourceStructur
     if (type === 'verdadero_falso') {
       const answers = new Set((items as Record<string, unknown>[]).map((i) => Boolean(i.isTrue)));
       if (answers.size < 2) return 'Incluye afirmaciones verdaderas y falsas.';
+    }
+    if (type === 'reto_prediccion') {
+      const repeated = (items as Record<string, string>[]).some((i) => {
+        const options = [i.correctOption, i.otherOption, i.extraOption].filter((o): o is string => Boolean(o && o.trim())).map((o) => o.trim().toLowerCase());
+        return new Set(options).size !== options.length;
+      });
+      if (repeated) return 'Las opciones de cada predicción deben ser distintas.';
     }
     if (type === 'completar_espacios' && (items as Record<string, string>[]).some((i) => !/_{3,}/.test(i.sentence) && !i.sentence.toLowerCase().includes(i.answer.toLowerCase()))) {
       return 'Cada oración debe tener ____ en el lugar de la respuesta.';
