@@ -4,7 +4,7 @@ import { Button, Spinner } from '@/shared/components/ui';
 import { errorMessage } from '@/shared/api/httpClient';
 import { fetchResourceMedia, regenerateMedia } from '@/features/review/api/reviewApi';
 import { formatOf } from '@/features/generation/model/resourceCatalog';
-import { predictionSources, stepSources } from '@/features/review/model/itemSources';
+import { criterionSources, predictionSources, stepSources } from '@/features/review/model/itemSources';
 import type { Resource } from '@/shared/types/domain';
 
 function useMediaUrl(resource: Resource, enabled: boolean) {
@@ -182,6 +182,27 @@ function ActivityPreview({ resource }: { resource: Resource }) {
                 ))}
               <p className="option__feedback">{p.reveal}</p>
               <p className="caption">{sources[i] ? `Fuente: ${sources[i]}` : 'Sin fuente del material: revisa esta predicción.'}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    );
+  }
+  if (resource.type === 'caso_aplicado') {
+    const sources = criterionSources(resource);
+    return (
+      <div className="stack stack--tight">
+        <span className="overline">Caso aplicado (el estudiante escribe su solución y la revisa con los criterios)</span>
+        <p>{s.scenario}</p>
+        <p>
+          <strong>Consigna:</strong> {s.task}
+        </p>
+        <span className="overline">Criterios de logro</span>
+        <ol className="activity-list">
+          {(s.criteria ?? []).map((c, i) => (
+            <li key={i}>
+              {c.criterion}
+              <p className="caption">{sources[i] ? `Fuente: ${sources[i]}` : 'Sin fuente del material: revisa este criterio.'}</p>
             </li>
           ))}
         </ol>

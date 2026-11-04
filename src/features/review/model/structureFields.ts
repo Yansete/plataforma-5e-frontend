@@ -64,6 +64,10 @@ export const STRUCTURE_SPECS: Partial<Record<ResourceType, StructureSpec>> = {
       min: 3,
     },
   },
+  caso_aplicado: {
+    fields: [area('scenario', 'Situación nueva'), area('task', 'Consigna: qué resuelve o propone el estudiante')],
+    list: { key: 'criteria', label: 'Criterios de logro', item: 'Criterio', fields: [area('criterion', 'Criterio de logro')], min: 3 },
+  },
   ordenar_pasos: {
     fields: [],
     list: { key: 'sequence', label: 'Pasos en el orden correcto', item: 'Paso', fields: 'string', min: 3 },
@@ -160,6 +164,10 @@ export function structureProblem(type: ResourceType, structure: ResourceStructur
         return new Set(options).size !== options.length;
       });
       if (repeated) return 'Las opciones de cada predicción deben ser distintas.';
+    }
+    if (type === 'caso_aplicado') {
+      const criteria = (items as Record<string, string>[]).map((i) => i.criterion.trim().toLowerCase());
+      if (new Set(criteria).size !== criteria.length) return 'Los criterios de logro no se pueden repetir.';
     }
     if (type === 'completar_espacios' && (items as Record<string, string>[]).some((i) => !/_{3,}/.test(i.sentence) && !i.sentence.toLowerCase().includes(i.answer.toLowerCase()))) {
       return 'Cada oración debe tener ____ en el lugar de la respuesta.';
