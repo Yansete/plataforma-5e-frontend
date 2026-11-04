@@ -4,7 +4,7 @@ import { Button, Spinner } from '@/shared/components/ui';
 import { errorMessage } from '@/shared/api/httpClient';
 import { fetchResourceMedia, regenerateMedia } from '@/features/review/api/reviewApi';
 import { formatOf } from '@/features/generation/model/resourceCatalog';
-import { stepSources } from '@/features/review/model/stepSources';
+import { predictionSources, stepSources } from '@/features/review/model/itemSources';
 import type { Resource } from '@/shared/types/domain';
 
 function useMediaUrl(resource: Resource, enabled: boolean) {
@@ -158,6 +158,30 @@ function ActivityPreview({ resource }: { resource: Resource }) {
                 <em>{step.question}</em>
               </p>
               <p className="caption">{sources[i] ? `Fuente: ${sources[i]}` : 'Sin fuente del material: revisa este paso.'}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    );
+  }
+  if (resource.type === 'reto_prediccion') {
+    const sources = predictionSources(resource);
+    return (
+      <div className="stack stack--tight">
+        <span className="overline">Predicciones del reto (el estudiante elige y luego ve lo que dice el material)</span>
+        <ol className="activity-list">
+          {(s.predictions ?? []).map((p, i) => (
+            <li key={i}>
+              <span>{p.question}</span>{' '}
+              {[p.correctOption, p.otherOption, p.extraOption]
+                .filter((o): o is string => Boolean(o))
+                .map((o) => (
+                  <span key={o} className={o === p.correctOption ? 'tag tag--approved' : 'tag'}>
+                    {o}
+                  </span>
+                ))}
+              <p className="option__feedback">{p.reveal}</p>
+              <p className="caption">{sources[i] ? `Fuente: ${sources[i]}` : 'Sin fuente del material: revisa esta predicción.'}</p>
             </li>
           ))}
         </ol>

@@ -69,6 +69,7 @@ export type ResourceType =
   | 'ejercicio_aplicacion'
   | 'item_opcion_multiple'
   | 'audio_detonante'
+  | 'reto_prediccion'
   | 'imagen_ilustrativa'
   | 'diagrama_proceso'
   | 'exploracion_guiada'
@@ -92,6 +93,15 @@ export interface ResourceStructure {
   steps?: { title: string; text: string }[];
   /** Exploración guiada (HU-048): cada paso con su consigna, su pregunta guía y los fragmentos que lo respaldan. */
   guidedSteps?: { title: string; instruction: string; question: string; fragmentIds?: string[] }[];
+  /** Reto de predicción (HU-047): el estudiante elige antes de ver lo que dice el material (`reveal`). */
+  predictions?: {
+    question: string;
+    correctOption: string;
+    otherOption: string;
+    extraOption?: string;
+    reveal: string;
+    fragmentIds?: string[];
+  }[];
   sequence?: string[];
   pairs?: { term: string; definition: string }[];
   statements?: { text: string; isTrue: boolean; feedback: string }[];

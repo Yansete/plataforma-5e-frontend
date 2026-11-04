@@ -34,6 +34,7 @@ const EXPLICIT: [RegExp, ResourceType][] = [
   [/emparejar|relacionar|relaciona|unir con flechas|columnas/, 'emparejamiento'],
   [/completar|espacios en blanco|rellenar/, 'completar_espacios'],
   [/ordenar|ordena|secuenciar|secuencia de pasos/, 'ordenar_pasos'],
+  [/reto (de prediccion|inicial)|retos de prediccion|juego para (iniciar|empezar)/, 'reto_prediccion'],
   [/detonante/, 'pregunta_detonante'],
   [/opcion multiple/, 'item_opcion_multiple'],
   [/sondeo|ideas previas|saberes previos|conocimientos previos|diagnostic/, 'sondeo_diagnostico'],
