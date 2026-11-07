@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireSession } from '@/app/RequireSession';
 import { NotFoundPage } from '@/app/NotFoundPage';
-import { AppLayout } from '@/shared/components/AppLayout';
+import { AppLayout } from './AppLayout';
 import { Spinner } from '@/shared/components/ui';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 
