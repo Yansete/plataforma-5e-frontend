@@ -9,6 +9,25 @@ Aplicación React, TypeScript y Vite. Se comunica con el backend mediante HTTP.
 
 El frontend se extrajo de la carpeta frontend del repositorio original mediante git subtree split, conservando su historial.
 
+## Mapa de carpetas
+
+| Ruta | Responsabilidad |
+| --- | --- |
+| `src/app/` | Rutas, protección de sesión y datos compartidos de la aplicación |
+| `src/features/` | Autenticación, cursos, unidades, materiales, generación, revisión y exportación |
+| `src/shared/` | Cliente HTTP, componentes, tipos y utilidades compartidos |
+| `src/config/` | Configuración del cliente |
+| `src/styles/` | Tokens del diseño y estilos base |
+| `src/test/` y `*.test.ts` | Datos de prueba y pruebas unitarias junto al código |
+| `e2e/` | Recorridos del docente en Chromium con Playwright y el backend real |
+| `.github/workflows/` | Verificación de tipos, cobertura, build y pruebas E2E |
+
+Las funcionalidades se dividen en API, modelos y componentes o páginas según sus necesidades.
+El [sistema de diseño](https://github.com/Yansete/plataforma-5e-backend/blob/main/docs/design/ui-design-system.docx)
+es la referencia para los tokens y componentes. El
+[contrato OpenAPI](https://github.com/Yansete/plataforma-5e-backend/blob/main/docs/api/openapi.json)
+define la comunicación con el backend.
+
 ## Desarrollo local
 
 Requisito: Node.js 22.
